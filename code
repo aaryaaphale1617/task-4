@@ -1,0 +1,48 @@
+import requests
+from bs4 import BeautifulSoup
+
+def parse_books(html):
+    """Parse HTML and extract book data."""
+    soup = BeautifulSoup(html, "html.parser")
+    books = []
+
+    for item in soup.select(".product_pod"):
+        title = item.h3.a["title"]
+        price = item.select_one(".price_color").text
+
+        classes = item.p.get("class", [])
+        rating = classes[1] if len(classes) > 1 else "No rating"
+
+        availability = item.select_one(".availability").text.strip()
+        link = item.h3.a["href"]
+
+        books.append({
+            "title": title,
+            "price": price,
+            "rating": rating,
+            "availability": availability,
+            "link": link
+        })
+
+    return books
+
+# Main function
+if _name_ == "_main_":
+    url = "http://books.toscrape.com/catalogue/page-1.html"
+
+    response = requests.get(url)
+
+    if response.status_code == 200:
+        html = response.text
+        books = parse_books(html)
+
+        # Print results
+        for book in books:
+            print(f"Title: {book['title']}")
+            print(f"Price: {book['price']}")
+            print(f"Rating: {book['rating']}")
+            print(f"Availability: {book['availability']}")
+            print(f"Link: http://books.toscrape.com/catalogue/{book['link']}")
+            print("-" * 40)
+    else:
+        print(f"Failed to fetch page. Status code: {response.status_code}")
